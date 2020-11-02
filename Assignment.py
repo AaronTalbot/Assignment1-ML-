@@ -11,6 +11,14 @@ import matplotlib.pyplot as plt
 
 data = pd.read_excel("movie_reviews.xlsx")
 
+def Clean_word(word):
+    for char in word:
+        if char.isalnum() or ' ':
+            break
+        else:
+            word = word.replace(char,"")
+    return word
+
 
 def Task1():
     Test_data = data[data["Split"]=="test"][["Review"]]
@@ -32,19 +40,42 @@ def Task1():
 
 def Task2(UncleanedData):
     Reviews = UncleanedData["Review"]
-    for index in range(1,10):
-        appendstring = ""
-        for word in Reviews.iloc[index]:
-            for char in word:
-                if char.isalnum() or char == ' ':
-                    appendstring += char
-        appendstring.lower()
-        appendstring.split() # creates string into list of string using white space as a sperator 
-        Reviews.iloc[index] = appendstring
+    Words = []
+    WordOccurences = {}
+    Length = 4
+    for index,value in Reviews.items():
+        value = Clean_word(value)
+        value = value.lower()
+        value = value.split()
+        for word in value:
+            if len(word) >= Length:
+                if word in WordOccurences:
+                    WordOccurences[word] = WordOccurences[word] + 1
+                else:
+                    WordOccurences[word] = 1
+                    
+                    
+    for key in list(WordOccurences.keys()): 
+        if WordOccurences[key] >= 5000:
+            Words.append(key)
+            
     
-    
+    for word in Words:
+        print(word)
+            
+                
+
+def task3():
+    pass
     
 Te_D, Te_L, Ta_D, Ta_L =  Task1()
 
 Task2(Ta_D)
 
+
+
+        
+            
+            
+            
+            
