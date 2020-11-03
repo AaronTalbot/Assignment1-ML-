@@ -80,7 +80,52 @@ def task3(Words, DataFrame, WordLen):
                 if word in WordDict:
                     WordDict[word] = WordDict[word] + 1
     
-    print(WordDict)
+    return WordDict
+    
+def task4(PDict,NDict,PosRevTot,NegResTot,DataFrame):
+    PosRevTot = PosRevTot-1
+    alpha = 1
+    PDictCount = dict.fromkeys(PDict,0)
+    NDictCount = dict.fromkeys(NDict,0)
+    Positive_Train_Data = DataFrame[DataFrame["Sentiment"]=="positive"]
+    Negative_Train_Data =  DataFrame[DataFrame["Sentiment"]=="negative"]
+    
+    Positive_Reviews = Positive_Train_Data["Review"]
+    Negative_Reviews = Negative_Train_Data["Review"]
+    for index,value in Positive_Reviews.items():
+        value = Clean_word(value)
+        value = value.lower()
+        value = value.split()
+        for key in list(PDict.keys()):
+            if key in value:
+                PDictCount[key] += 1
+                
+    for index,value in Negative_Reviews.items():
+        value = Clean_word(value)
+        value = value.lower()
+        value = value.split()
+        for key in list(NDict.keys()):
+            if key in value:
+                    NDictCount[key] += 1
+    print(PDictCount)
+    print("======================================")
+    print(NDictCount)
+    
+    PositiveWordProb = dict.fromkeys(PDictCount,0)
+    NegativeWordProb = dict.fromkeys(NDictCount,0)
+    
+    for key in list(PositiveWordProb.keys()):
+        PositiveWordProb[key] = ((PDictCount[key] + alpha) / PosRevTot)
+        NegativeWordProb[key] = ((NDictCount[key] + alpha) / NegResTot)
+    
+    print(PositiveWordProb)
+    print("="*20)
+    print(NegativeWordProb)
+    
+    PRevPos = PosRevTot / (PosRevTot+NegResTot)  
+    PRevNeg = NegResTot / (PosRevTot+NegResTot)
+    print(PRevPos)
+    print(PRevNeg)
     
     
 
@@ -93,9 +138,13 @@ def Main():
     Test_Data, Test_Lables, Training_Data, Training_Lables, Positive_Train_Data, Negative_Train_Data =  Task1()
     
     Words = Task2(Training_Data,MinOccurences,MinimumLen)
-    task3(Words,Positive_Train_Data,MinimumLen)
-    task3(Words,Negative_Train_Data,MinimumLen)
-
+    PositiveDict = task3(Words,Positive_Train_Data,MinimumLen)
+    NegativeDict = task3(Words,Negative_Train_Data,MinimumLen)
+    
+    total_positive = Positive_Train_Data.shape[0]
+    total_negative = Negative_Train_Data.shape[0]
+    
+    task4(PositiveDict,NegativeDict,total_positive,total_negative,Training_Lables)
         
             
             
