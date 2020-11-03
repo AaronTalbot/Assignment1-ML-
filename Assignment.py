@@ -36,46 +36,68 @@ def Task1():
     print("Positive reviews in the train data are : " + str(Positive_Train_Data.shape[0]))
     print("Negative reviews in the train data are : " + str(Negative_Train_Data.shape[0]))
     
-    return Test_data,Test_Labels,Train_Data,Train_Labels
+    return Test_data,Test_Labels,Train_Data,Train_Labels, Positive_Train_Data, Negative_Train_Data
 
-def Task2(UncleanedData):
+def Task2(UncleanedData, MinOccurences, MinLength):
     Reviews = UncleanedData["Review"]
     Words = []
     WordOccurences = {}
-    Length = 4
     for index,value in Reviews.items():
         value = Clean_word(value)
         value = value.lower()
         value = value.split()
         for word in value:
-            if len(word) >= Length:
+            if len(word) >= MinLength:
                 if word in WordOccurences:
                     WordOccurences[word] = WordOccurences[word] + 1
                 else:
                     WordOccurences[word] = 1
-                    
-                    
+                                  
     for key in list(WordOccurences.keys()): 
-        if WordOccurences[key] >= 5000:
+        if WordOccurences[key] >= MinOccurences:
             Words.append(key)
             
+            
+    return Words
+            
     
-    for word in Words:
-        print(word)
+
             
                 
 
-def task3():
-    pass
+def task3(Words, DataFrame, WordLen):
+    WordDict = dict.fromkeys(Words,0)
+    # print(DataFrame.head())
+    ReviewDataFrame = DataFrame["Review"]
+    # print("=============================================================")
+    # print(ReviewDataFrame.head())
+    for index,value in ReviewDataFrame.items():
+        value = Clean_word(value)
+        value = value.lower()
+        value = value.split()
+        for word in value:
+            if len(word) >=WordLen:
+                if word in WordDict:
+                    WordDict[word] = WordDict[word] + 1
     
-Te_D, Te_L, Ta_D, Ta_L =  Task1()
+    print(WordDict)
+    
+    
 
-Task2(Ta_D)
 
 
+def Main():
+    MinimumLen = 4
+    MinOccurences = 7500
+    
+    Test_Data, Test_Lables, Training_Data, Training_Lables, Positive_Train_Data, Negative_Train_Data =  Task1()
+    
+    Words = Task2(Training_Data,MinOccurences,MinimumLen)
+    task3(Words,Positive_Train_Data,MinimumLen)
+    task3(Words,Negative_Train_Data,MinimumLen)
 
         
             
             
-            
+Main()
             
