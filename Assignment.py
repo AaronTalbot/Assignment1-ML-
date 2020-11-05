@@ -55,7 +55,7 @@ def Task2(UncleanedData, MinOccurences, MinLength):
                     WordOccurences[word] = 1
                                   
     for key in list(WordOccurences.keys()): 
-        if WordOccurences[key] >= MinOccurences:
+        if WordOccurences[key] > MinOccurences:
             Words.append(key)
             
             
@@ -129,13 +129,21 @@ def task4(PDict,NDict,PosRevTot,NegResTot,DataFrame):
     
     
 def task5(Review,PositivePrior,NegativePrior,NegativeDictProb,PositiveDictProb):
+    Negative_Probability = 0
+    Positive_Probability = 0
+
     Review = Clean_word(Review)
     Review = Review.lower()
     Review = Review.split()
     for word in Review:
         if word in list(NegativeDictProb.keys()):
-            pass  
-    
+            Positive_Probability = Positive_Probability + math.log(PositiveDictProb[word])
+            Negative_Probability = Negative_Probability + math.log(NegativeDictProb[word])
+   
+    if Positive_Probability - Negative_Probability > math.log(NegativePrior) - math.log(PositivePrior):
+        print("Positive")
+    else:
+        print("Negative")
 
 
 
@@ -147,15 +155,27 @@ def Main():
     Test_Data, Test_Lables, Training_Data, Training_Lables, Positive_Train_Data, Negative_Train_Data =  Task1()
     
     Words = Task2(Training_Data,MinOccurences,MinimumLen)
+    print(Words)
     
     
     PositiveDict = task3(Words,Positive_Train_Data,MinimumLen)
-    NegativeDict = task3(Words,Negative_Train_Data,MinimumLen)
+    print(PositiveDict)
+    NegativeDict = task3(Words,Negative_Train_Data,MinimumLen) 
+    print(NegativeDict)
+
     
     total_positive = Positive_Train_Data.shape[0]
     total_negative = Negative_Train_Data.shape[0]
     
     NegativeDictionaryProbabilty, PositiveDictionaryProbabilty, NegativePrior, PositivePrior = task4(PositiveDict,NegativeDict,total_positive,total_negative,Training_Lables)
+    
+    Pos_Reviews = Training_Lables[Training_Lables["Sentiment"] == "positive"]
+    Review = Pos_Reviews.iloc[1].values[0]
+    
+    task5(Review,PositivePrior,NegativePrior,NegativeDictionaryProbabilty,PositiveDictionaryProbabilty)
+    
+    
+    task5()
         
             
             
