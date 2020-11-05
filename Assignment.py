@@ -8,13 +8,14 @@ Created on Sun Nov  1 21:18:24 2020
 import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
-
+import math
 data = pd.read_excel("movie_reviews.xlsx")
+
 
 def Clean_word(word):
     for char in word:
-        if char.isalnum() or ' ':
-            break
+        if char.isalnum() or char == ' ':
+            pass
         else:
             word = word.replace(char,"")
     return word
@@ -83,7 +84,7 @@ def task3(Words, DataFrame, WordLen):
     return WordDict
     
 def task4(PDict,NDict,PosRevTot,NegResTot,DataFrame):
-    PosRevTot = PosRevTot-1
+
     alpha = 1
     PDictCount = dict.fromkeys(PDict,0)
     NDictCount = dict.fromkeys(NDict,0)
@@ -115,8 +116,8 @@ def task4(PDict,NDict,PosRevTot,NegResTot,DataFrame):
     NegativeWordProb = dict.fromkeys(NDictCount,0)
     
     for key in list(PositiveWordProb.keys()):
-        PositiveWordProb[key] = ((PDictCount[key] + alpha) / PosRevTot)
-        NegativeWordProb[key] = ((NDictCount[key] + alpha) / NegResTot)
+        PositiveWordProb[key] = ((PDictCount[key] + alpha) / (PosRevTot + alpha*2))
+        NegativeWordProb[key] = ((NDictCount[key] + alpha) / (NegResTot + alpha*2))
     
     print(PositiveWordProb)
     print("="*20)
@@ -124,27 +125,37 @@ def task4(PDict,NDict,PosRevTot,NegResTot,DataFrame):
     
     PRevPos = PosRevTot / (PosRevTot+NegResTot)  
     PRevNeg = NegResTot / (PosRevTot+NegResTot)
-    print(PRevPos)
-    print(PRevNeg)
+    return NegativeWordProb, PositiveWordProb, PRevNeg, PRevPos
     
     
+def task5(Review,PositivePrior,NegativePrior,NegativeDictProb,PositiveDictProb):
+    Review = Clean_word(Review)
+    Review = Review.lower()
+    Review = Review.split()
+    for word in Review:
+        if word in list(NegativeDictProb.keys()):
+            pass  
+    
+
 
 
 
 def Main():
     MinimumLen = 4
-    MinOccurences = 7500
+    MinOccurences = 10000
     
     Test_Data, Test_Lables, Training_Data, Training_Lables, Positive_Train_Data, Negative_Train_Data =  Task1()
     
     Words = Task2(Training_Data,MinOccurences,MinimumLen)
+    
+    
     PositiveDict = task3(Words,Positive_Train_Data,MinimumLen)
     NegativeDict = task3(Words,Negative_Train_Data,MinimumLen)
     
     total_positive = Positive_Train_Data.shape[0]
     total_negative = Negative_Train_Data.shape[0]
     
-    task4(PositiveDict,NegativeDict,total_positive,total_negative,Training_Lables)
+    NegativeDictionaryProbabilty, PositiveDictionaryProbabilty, NegativePrior, PositivePrior = task4(PositiveDict,NegativeDict,total_positive,total_negative,Training_Lables)
         
             
             
