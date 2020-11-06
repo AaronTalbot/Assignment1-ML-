@@ -55,7 +55,7 @@ def Task2(UncleanedData, MinOccurences, MinLength):
                     WordOccurences[word] = 1
                                   
     for key in list(WordOccurences.keys()): 
-        if WordOccurences[key] >= MinOccurences:
+        if WordOccurences[key] > MinOccurences:
             Words.append(key)
             
             
@@ -146,11 +146,7 @@ def task5(Review,PositivePrior,NegativePrior,NegativeDictProb,PositiveDictProb):
         print("Negative")
 
 
-def Task6():
-    min_word_length_list = [1,2,3,4,5,6,7,8,9,10]
-    min_word_Occurences_list=[10000,7500,5000]
-    
-    
+
 
 def Main():
     MinimumLen = 4
@@ -179,7 +175,7 @@ def Main():
     task5(Review,PositivePrior,NegativePrior,NegativeDictionaryProbabilty,PositiveDictionaryProbabilty)
     
     
-
+    task5()
         
             
             
