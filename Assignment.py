@@ -140,7 +140,7 @@ def task5(Review,PositivePrior,NegativePrior,NegativeDictProb,PositiveDictProb):
             Positive_Probability = Positive_Probability + math.log(PositiveDictProb[word])
             Negative_Probability = Negative_Probability + math.log(NegativeDictProb[word])
    
-    if Positive_Probability - Negative_Probability > math.log(NegativePrior) - math.log(PositivePrior):
+    if Positive_Probability - Negative_Probability  > math.log(NegativePrior) - math.log(PositivePrior):
         print("Positive")
     else:
         print("Negative")
