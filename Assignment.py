@@ -9,6 +9,9 @@ import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
 import math
+from sklearn import model_selection
+from sklearn.neighbors import KNeighborsClassifier 
+from sklearn import metrics
 data = pd.read_excel("movie_reviews.xlsx")
 
 
@@ -61,10 +64,6 @@ def Task2(UncleanedData, MinOccurences, MinLength):
             
     return Words
             
-    
-
-            
-                
 
 def task3(Words, DataFrame, WordLen):
     WordDict = dict.fromkeys(Words,0)
@@ -82,6 +81,35 @@ def task3(Words, DataFrame, WordLen):
                     WordDict[word] = WordDict[word] + 1
     
     return WordDict
+
+def task3_WordDict(Words, DataFrame, WordLen):
+    NegativeData = DataFrame[DataFrame["Sentiment"]=="negative"]["Review"]
+    PositiveData = DataFrame[DataFrame["Sentiment"]=="positive"]["Review"]
+    
+    NegativeDict = dict.fromkeys(Words,0)
+    for index,value in NegativeData.items():
+        value = Clean_word(value)
+        value = value.lower()
+        value = value.split()
+        for word in value:
+            if len(word) >=WordLen:
+                if word in NegativeDict:
+                    NegativeDict[word] = NegativeDict[word] + 1
+   
+    PositiveDict = dict.fromkeys(Words,0)
+    for index,value in PositiveData.items():
+        value = Clean_word(value)
+        value = value.lower()
+        value = value.split()
+        for word in value:
+            if len(word) >=WordLen:
+                if word in NegativeDict:
+                    PositiveDict[word] = PositiveDict[word] + 1
+                    
+    
+    
+    return NegativeDict,PositiveDict
+
     
 def task4(PDict,NDict,PosRevTot,NegResTot,DataFrame):
 
@@ -108,9 +136,7 @@ def task4(PDict,NDict,PosRevTot,NegResTot,DataFrame):
         for key in list(NDict.keys()):
             if key in value:
                     NDictCount[key] += 1
-    print(PDictCount)
-    print("======================================")
-    print(NDictCount)
+
     
     PositiveWordProb = dict.fromkeys(PDictCount,0)
     NegativeWordProb = dict.fromkeys(NDictCount,0)
@@ -119,9 +145,7 @@ def task4(PDict,NDict,PosRevTot,NegResTot,DataFrame):
         PositiveWordProb[key] = ((PDictCount[key] + alpha) / (PosRevTot + alpha*2))
         NegativeWordProb[key] = ((NDictCount[key] + alpha) / (NegResTot + alpha*2))
     
-    print(PositiveWordProb)
-    print("="*20)
-    print(NegativeWordProb)
+
     
     PRevPos = PosRevTot / (PosRevTot+NegResTot)  
     PRevNeg = NegResTot / (PosRevTot+NegResTot)
@@ -131,7 +155,8 @@ def task4(PDict,NDict,PosRevTot,NegResTot,DataFrame):
 def task5(Review,PositivePrior,NegativePrior,NegativeDictProb,PositiveDictProb):
     Negative_Probability = 0
     Positive_Probability = 0
-
+    
+    
     Review = Clean_word(Review)
     Review = Review.lower()
     Review = Review.split()
@@ -147,12 +172,70 @@ def task5(Review,PositivePrior,NegativePrior,NegativeDictProb,PositiveDictProb):
         print("Negative")
 
 
-def Task6():
-    min_word_length_list = [1,2,3,4,5,6,7,8,9,10]
-    min_word_Occurences_list=[10000,7500,5000]
+def task5_MultipleReviews(Test_Set,PositivePrior,NegativePrior,NegativeDictProb,PositiveDictProb):
+
+        
+
+    Reviews = Test_Set["Review"]
+    List = []
+    for index,Review in Reviews.items():
+        Negative_Probability = 0
+        Positive_Probability = 0
+        Review = Clean_word(Review)
+        Review = Review.lower()
+        Review = Review.split()
+        for word in Review:
+            if word in list(NegativeDictProb.keys()):
+                Positive_Probability = Positive_Probability + math.log(PositiveDictProb[word])
+                Negative_Probability = Negative_Probability + math.log(NegativeDictProb[word])
+       
     
-    print(min_word_length_list)
-    print(min_word_Occurences_list)
+        if Positive_Probability - Negative_Probability > math.log(NegativePrior) - math.log(PositivePrior):
+            List.append("positive")
+        else:
+            List.append("negative")
+    
+    return List
+        
+
+def Task6():
+    allResults = []
+    Means = []
+    
+    Test_Data, Test_Lables, Training_Data, Training_Lables, Positive_Train_Data, Negative_Train_Data =  Task1()
+    
+
+
+    kf = model_selection.KFold(n_splits=6, shuffle=True)
+    for i in range(1,11):
+
+        for train_index, test_index in kf.split(Training_Data):
+            # print(train_index)
+            # print("-"*50)
+            # print(Training_Data.iloc[train_index]["Review"])
+            Words = Task2(Training_Data.iloc[train_index], 4000, 4)
+            NegativeDict = dict.fromkeys(Words,0)
+            PositiveDict = dict.fromkeys(Words,0)
+    
+    
+            NegativeDict, PositiveDict = task3_WordDict(Words, Training_Lables.iloc[train_index], 4)
+
+            
+            total_positive = Training_Lables[Training_Lables["Sentiment"]=="positive"].shape[0]
+            total_negative = Training_Lables[Training_Lables["Sentiment"]=="negative"].shape[0]
+            
+            NegativeDictionaryProbabilty, PositiveDictionaryProbabilty, NegativePrior, PositivePrior = task4(PositiveDict,NegativeDict,total_positive,total_negative,Training_Lables)
+            
+            Predictions = task5_MultipleReviews(Training_Data.iloc[test_index],PositivePrior,NegativePrior,NegativeDictionaryProbabilty,PositiveDictionaryProbabilty)
+            # print(Predictions)
+            # print(Training_Lables["Sentiment"].iloc[test_index])
+            allResults.append(metrics.accuracy_score(Predictions, Training_Lables["Sentiment"].iloc[test_index]))
+        print("Accuracy for length " + str(i) + " : "  + str(np.mean(allResults)))
+        Means.append(np.mean(allResults))
+    
+    for j in Means:
+        print("Accuracy for length " + str(j) + " : "  + Means[j])
+
 
 def Main():
     MinimumLen = 4
@@ -180,10 +263,5 @@ def Main():
     
     task5(Review,PositivePrior,NegativePrior,NegativeDictionaryProbabilty,PositiveDictionaryProbabilty)
     
-    
-
-        
-            
-            
-Main()
+Task6()
             
