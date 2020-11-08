@@ -40,7 +40,7 @@ def Task1():
     print("Positive reviews in the train data are : " + str(Positive_Train_Data.shape[0]))
     print("Negative reviews in the train data are : " + str(Negative_Train_Data.shape[0]))
     
-    return Test_data,Test_Labels,Train_Data,Train_Labels, Positive_Train_Data, Negative_Train_Data
+    return Test_data,Test_Labels,Train_Data,Train_Labels, Positive_Train_Data, Negative_Train_Data, Negative_Test_Data, Positive_Test_Data
 
 def Task2(UncleanedData, MinOccurences, MinLength):
     Reviews = UncleanedData["Review"]
@@ -166,7 +166,7 @@ def task5(Review,PositivePrior,NegativePrior,NegativeDictProb,PositiveDictProb):
             Negative_Probability = Negative_Probability + math.log(NegativeDictProb[word])
    
 
-    if Positive_Probability > Negative_Probability > math.log(NegativePrior) - math.log(PositivePrior):
+    if Positive_Probability - Negative_Probability > math.log(NegativePrior) - math.log(PositivePrior):
         print("Positive")
     else:
         print("Negative")
@@ -202,7 +202,7 @@ def Task6():
     allResults = []
     Means = []
     
-    Test_Data, Test_Lables, Training_Data, Training_Lables, Positive_Train_Data, Negative_Train_Data =  Task1()
+    Test_Data, Test_Lables, Training_Data, Training_Lables, Positive_Train_Data, Negative_Train_Data, Negative_Test_Data, Positive_Test_Data =  Task1()
     
 
 
@@ -213,12 +213,12 @@ def Task6():
             # print(train_index)
             # print("-"*50)
             # print(Training_Data.iloc[train_index]["Review"])
-            Words = Task2(Training_Data.iloc[train_index], 4000, 4)
+            Words = Task2(Training_Data.iloc[train_index], 10000, i)
             NegativeDict = dict.fromkeys(Words,0)
             PositiveDict = dict.fromkeys(Words,0)
     
     
-            NegativeDict, PositiveDict = task3_WordDict(Words, Training_Lables.iloc[train_index], 4)
+            NegativeDict, PositiveDict = task3_WordDict(Words, Training_Lables.iloc[train_index], i)
 
             
             total_positive = Training_Lables[Training_Lables["Sentiment"]=="positive"].shape[0]
@@ -232,16 +232,14 @@ def Task6():
             allResults.append(metrics.accuracy_score(Predictions, Training_Lables["Sentiment"].iloc[test_index]))
         print("Accuracy for length " + str(i) + " : "  + str(np.mean(allResults)))
         Means.append(np.mean(allResults))
-    
-    for j in Means:
-        print("Accuracy for length " + str(j) + " : "  + Means[j])
+
 
 
 def Main():
     MinimumLen = 4
     MinOccurences = 10000
     
-    Test_Data, Test_Lables, Training_Data, Training_Lables, Positive_Train_Data, Negative_Train_Data =  Task1()
+    Test_Data, Test_Lables, Training_Data, Training_Lables, Positive_Train_Data, Negative_Train_Data, Negative_Test_Data, Positive_Test_Data =  Task1()
     
     Words = Task2(Training_Data,MinOccurences,MinimumLen)
     print(Words)
@@ -262,6 +260,51 @@ def Main():
     Review = Pos_Reviews.iloc[1].values[0]
     
     task5(Review,PositivePrior,NegativePrior,NegativeDictionaryProbabilty,PositiveDictionaryProbabilty)
+    
+
+def Task6Test():
+    Test_Data, Test_Lables, Training_Data, Training_Lables, Positive_Train_Data, Negative_Train_Data, Negative_Test_Data, Positive_Test_Data =  Task1()
+    MinWordsOccurences = 4000
+    MinLen = 4
+    Results = []
+    True_Positive =[]
+    False_Positive = []
+    True_Negative = []
+    False_Negative = []
+    
+    Words = Task2(Training_Data,MinWordsOccurences,MinLen)
+    
+    PositiveDict = task3(Words,Positive_Train_Data,MinLen)
+    NegativeDict = task3(Words,Negative_Train_Data,MinLen)
+    
+    total_positive = Positive_Train_Data.shape[0]
+    total_negative = Negative_Train_Data.shape[0]
+    
+    NegativeDictionaryProbabilty, PositiveDictionaryProbabilty, NegativePrior, PositivePrior = task4(PositiveDict,NegativeDict,total_positive,total_negative,Training_Lables)
+    total = Test_Lables.shape[0]
+    
+    Predictions = task5_MultipleReviews(Test_Lables,PositivePrior,NegativePrior,NegativeDictionaryProbabilty,PositiveDictionaryProbabilty)
+
+
+    C = metrics.confusion_matrix(Predictions, Test_Lables["Sentiment"])
+    print("Confusion Matrix = ", C)
+            
+    True_Positive.append(C[0,0])
+    True_Negative.append(C[0,1])
+    False_Positive.append(C[1,0])
+    False_Negative.append(C[1,1])
+    Results.append(metrics.accuracy_score(Predictions, Test_Lables["Sentiment"]))
+    print("Accuracy = ", np.mean(Results))
+
+    
+
+    
+    print("True Negatives ", np.sum(True_Negative) /total *100, "%")
+    print("True Positives ", np.sum(True_Positive) /total *100, "%")
+    print("False Negatives ", np.sum(False_Negative) /total *100, "%")
+    print("False Positives ", np.sum(False_Positive) /total *100, "%")
+    
+    
     
 Task6()
             
